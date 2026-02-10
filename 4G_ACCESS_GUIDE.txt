@@ -1,0 +1,100 @@
+╔══════════════════════════════════════════════════════════════════╗
+║          JUTEVISION 4G LIVE ACCESS - QUICK START                ║
+╚══════════════════════════════════════════════════════════════════╝
+
+✅ WHAT'S RUNNING NOW:
+  • Streamlit App: http://192.168.0.185:8500 (Wi-Fi only)
+  • ngrok Tunnel: ACTIVE (for 4G access)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 METHOD 1: GET 4G URL FROM NGROK (Easiest)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Go to: http://127.0.0.1:4040
+   (This is ngrok's local dashboard on your PC)
+
+2. Look for a URL like:
+   https://abc123-def456.ngrok.io
+   
+3. Copy that URL and open on your 4G phone
+   Example: https://abc123-def456.ngrok.io
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 METHOD 2: USE ALTERNATIVE TUNNEL (No Extra Setup)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Open NEW PowerShell and run:
+
+OPTION A (Cloudflare - Recommended):
+  choco install cloudflared -y
+  cloudflared tunnel --url http://localhost:8500
+  
+  Copy the https://xxx.trycloudflare.com URL to your 4G phone
+
+OPTION B (localtunnel - Simplest):
+  npm install -g localtunnel
+  npx lt --port 8500
+  
+  Copy the domain to your 4G phone
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST ON YOUR PHONE:
+
+1. Open browser on 4G phone
+2. Go to the public URL (https://xxx)
+3. You should see:
+   ✓ "Hello, Inspector" title
+   ✓ Scan Jute tab with camera
+   ✓ Results tab with compliance badge
+   ✓ Export tab with download buttons
+
+4. Try these features:
+   ✓ 📷 Capture image or manual entry
+   ✓ 🤖 Analyze to get AI results
+   ✓ 📊 See compliance (GREEN/RED badge)
+   ✓ 📥 Export as JSON/CSV
+   ✓ 📤 Submit to government server
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 WHAT TO TEST:
+
+1. Weight Entry:
+   Enter 50-80 kg → Should show in metrics
+
+2. Compliance Logic:
+   Weight ≥50kg + Confidence ≥85% + Detections ≥8
+   Result: GREEN "COMPLIANT" badge
+
+3. Grade Calculation:
+   Grade A (Excellent), B (Good), C (Fair)
+
+4. Inspector Metadata:
+   Inspector: Arman
+   GPS: Get Bangladesh coordinates
+   Timestamp: Live time
+   Audit ID: Unique for each audit
+
+5. Export Features:
+   JSON file download
+   CSV file download  
+   PDF generation
+   Server submission
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💬 If URL doesn't work:
+  • Check 4G phone is on internet (not offline)
+  • Make sure PC is still running (don't close terminals)
+  • Try refreshing in browser
+  • Check if tunnel service created new URL
+
+📞 Need help? Check:
+  • Is Streamlit running? (Port 8500 should be active)
+  • Is tunnel active? (Check dashboard)
+  • Browser cache? (Try incognito mode)
+
+═══════════════════════════════════════════════════════════════════

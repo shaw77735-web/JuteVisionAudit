@@ -1,0 +1,9 @@
+To create a Windows Scheduled Task that runs `start_services.ps1` at logon, run (in an elevated PowerShell):
+
+schtasks /Create /SC ONLOGON /TN "JuteVision" /TR "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\Users\AFTAB\Desktop\New folder\JuteVision\start_services.ps1\"" /RL HIGHEST /F
+
+Adjust the path to where `start_services.ps1` is located. This creates a task named 'JuteVision' that runs at each user logon with highest privileges.
+
+To delete the task:
+
+schtasks /Delete /TN "JuteVision" /F

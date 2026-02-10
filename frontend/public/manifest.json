@@ -1,0 +1,10 @@
+{
+  "name": "JuteVision Auditor",
+  "short_name": "JuteVision",
+  "description": "Professional jute audit, scan, upload & save with PIN safety",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0b0d",
+  "theme_color": "#10b981",
+  "orientation": "any"
+}
