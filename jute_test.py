@@ -1,41 +1,4 @@
-import streamlit as st
-
-# 1. THE BRAIN: Authorized CSS for Colors
-st.markdown("""
-    <style>
-    [data-testid="stHeader"] {display:none !important;} /* Kill White Patti */
-    .block-container {padding-top: 0rem !important;}
-    h1 {color: white !important;} /* Hello Inspector in White */
-    div[data-testid="stMetricValue"] > div {color: black !important; font-weight: 900 !important;} /* Black Text in Cards */
-    </style>
-""", unsafe_allow_html=True)
-
-# 2. THE HEADER
-st.title("Hello, Inspector")
-
-# 3. THE SETTINGS (Profile Button)
-with st.popover("👤 Profile"):
-    st.write("Inspector: Arman")
-    st.toggle("Dark Mode", value=True)
-    if st.button("Logout", type="primary"):
-        st.write("Logging out...")
-
-# 4. THE COMPLIANCE LOGIC
-# For now, we will toggle this manually to see it work
-is_compliant = st.toggle("Simulate Successful Scan") 
-
-if is_compliant:
-    st.markdown('<div style="background-color:#50C878; color:black; padding:20px; border-radius:10px; text-align:center; font-weight:bold; font-size:24px;">COMPLIANT</div>', unsafe_allow_html=True)
-else:
-    st.markdown('<div style="background-color:#FF4B4B; color:black; padding:20px; border-radius:10px; text-align:center; font-weight:bold; font-size:24px;">NON-COMPLIANT</div>', unsafe_allow_html=True)
-
-# 5. THE RESULTS CARDS (Emerald Green)
-col1, col2 = st.columns(2)
-with col1:
-    st.metric("Grade", "C")
-with col2:
-    st.metric("Weight", "50.0 kg")
-    import importlib.metadata as _importlib_metadata
+import importlib.metadata as _importlib_metadata
 try:
     __orig_version = _importlib_metadata.version
     def _patched_version(name, *args, **kwargs):
@@ -97,24 +60,26 @@ if "page" not in st.session_state:
     st.session_state.page = "main"
 if "pin_verified" not in st.session_state:
     st.session_state.pin_verified = False
+if "simulated_success" not in st.session_state:
+    st.session_state.simulated_success = False
 
 # Initialize audit data structure
 def init_audit_data(inspector):
     return {
-        "audit_id": f"JAI_AUDIT_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+        "audit_id": f"AUDIT_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
         "inspector": inspector,
         "gps": None,
         "timestamp": None,
         "bales_count": 0,
-        "daily_consumption": 100,  # Default: 100 bales/day for Indian mills
+        "daily_consumption": 100,
         "stock_days": 0,
         "weight_kg": 0,
         "confidence": 0,
         "detections": 0,
         "grade": "N/A",
         "compliance": "PENDING",
-        "compliance_status": "PENDING",  # PASS or FAIL
-        "jute_packaging_act_compliance": False,  # Specific to India
+        "compliance_status": "PENDING",
+        "jute_packaging_act_compliance": False,
         "image": None,
         "processed_image": None,
         "notes": "",
@@ -124,7 +89,7 @@ def init_audit_data(inspector):
     }
 
 # ============================================
-# CSS STYLING - Indian Government Theme (Tricolor)
+# CSS STYLING - FIXED FOR BOTH THEMES
 # ============================================
 def get_css(theme):
     if theme == "dark":
@@ -147,6 +112,12 @@ def get_css(theme):
             color: #ffffff !important;
             font-weight: 600 !important;
         }
+        p, div, span, label {
+            color: #ffffff !important;
+        }
+        .stMarkdown p {
+            color: #ffffff !important;
+        }
         .header-title {
             background: linear-gradient(90deg, #FF9932 0%, #FFFFFF 50%, #138808 100%);
             -webkit-background-clip: text;
@@ -158,7 +129,7 @@ def get_css(theme):
         }
         .govt-badge {
             background-color: #000080;
-            color: white;
+            color: white !important;
             padding: 10px;
             border-radius: 5px;
             text-align: center;
@@ -171,13 +142,13 @@ def get_css(theme):
             border-radius: 15px;
             padding: 20px;
             text-align: center;
-            color: #FF9932;
+            color: #FF9932 !important;
             font-weight: bold;
             font-size: 24px;
         }
         .compliant-badge {
             background-color: #138808;
-            color: #ffffff;
+            color: #ffffff !important;
             padding: 30px;
             border-radius: 15px;
             text-align: center;
@@ -187,7 +158,7 @@ def get_css(theme):
         }
         .non-compliant-badge {
             background-color: #FF9932;
-            color: #000000;
+            color: #000000 !important;
             padding: 30px;
             border-radius: 15px;
             text-align: center;
@@ -220,16 +191,22 @@ def get_css(theme):
             padding-top: 0.5rem !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
-            background-color: #f8f9fa !important;
+            background-color: #f0f2f6 !important;
         }
         body {
-            background-color: #f8f9fa !important;
-            color: #212529 !important;
+            background-color: #f0f2f6 !important;
+            color: #1f1f1f !important;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
         }
         h1, h2, h3 {
-            color: #000080 !important;
+            color: #1f1f1f !important;
             font-weight: 600 !important;
+        }
+        p, div, span, label {
+            color: #1f1f1f !important;
+        }
+        .stMarkdown p {
+            color: #1f1f1f !important;
         }
         .header-title {
             background: linear-gradient(90deg, #FF9932 0%, #000080 50%, #138808 100%);
@@ -242,7 +219,7 @@ def get_css(theme):
         }
         .govt-badge {
             background-color: #000080;
-            color: white;
+            color: white !important;
             padding: 10px;
             border-radius: 5px;
             text-align: center;
@@ -255,13 +232,13 @@ def get_css(theme):
             border-radius: 15px;
             padding: 20px;
             text-align: center;
-            color: #000080;
+            color: #000080 !important;
             font-weight: bold;
             font-size: 24px;
         }
         .compliant-badge {
             background-color: #138808;
-            color: #ffffff;
+            color: #ffffff !important;
             padding: 30px;
             border-radius: 15px;
             text-align: center;
@@ -271,7 +248,7 @@ def get_css(theme):
         }
         .non-compliant-badge {
             background-color: #FF9932;
-            color: #000000;
+            color: #000000 !important;
             padding: 30px;
             border-radius: 15px;
             text-align: center;
@@ -310,7 +287,6 @@ def load_yolo_model():
         
         model_path = os.path.join(os.path.dirname(__file__), 'yolo11n.pt')
         
-        # Download if not exists
         if not os.path.exists(model_path):
             st.info("📥 Downloading AI Model... This may take a minute.")
             url = 'https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt'
@@ -342,11 +318,9 @@ def add_watermark_to_image(image, metadata):
     inspector = metadata.get("inspector", "Unknown")
     audit_id = metadata.get("audit_id", "N/A")
     
-    # Top watermark - Indian Govt style
     watermark_text_top = f"🇮🇳 Govt of India | JuteVision Auditor | Audit: {audit_id}"
     draw.text((10, 10), watermark_text_top, fill=(255, 153, 50, 200))
     
-    # Bottom watermark
     watermark_text_bottom = f"📍 {location} | 🕐 {timestamp} | Inspector: {inspector}"
     try:
         bbox = draw.textbbox((0, 0), watermark_text_bottom)
@@ -365,8 +339,7 @@ def add_watermark_to_image(image, metadata):
 def detect_jute_bales(image, model):
     """Detect jute bales using YOLO"""
     if model is None:
-        # Fallback simulation
-        return np.random.randint(20, 50), image, 0.88
+        return 0, image, 0.0
     
     try:
         results = model(image)
@@ -388,31 +361,46 @@ def detect_jute_bales(image, model):
         return 0, image, 0.0
 
 def calculate_stock_days(bales_count, daily_consumption=100):
-    """Calculate stock days for Indian jute mills"""
+    """Calculate stock days"""
     if daily_consumption <= 0:
         return 0
     return round(bales_count / daily_consumption, 1)
 
 def check_compliance(stock_days, min_days=30):
-    """Check Jute Packaging Materials Act compliance"""
+    """Check compliance"""
     return "PASS" if stock_days >= min_days else "FAIL"
 
 def check_jute_packaging_act(bales_count, stock_days):
-    """Specific compliance under Jute Packaging Materials Act, 1987"""
-    # Must maintain minimum stock as per Act
+    """Specific compliance"""
     return stock_days >= 30 and bales_count >= 100
 
 def generate_fraud_score(audit_data):
-    """Generate fraud detection score"""
+    """Generate fraud detection score based on actual data quality"""
     score = 0
-    if audit_data.get("confidence", 0) < 0.5:
+    
+    # No image captured
+    if audit_data.get("image") is None:
+        score += 40
+    
+    # Low confidence detection
+    confidence = audit_data.get("confidence", 0)
+    if confidence < 0.5:
         score += 30
+    elif confidence < 0.7:
+        score += 15
+    
+    # No GPS data
     if audit_data.get("gps") is None:
         score += 20
+    
+    # No timestamp
     if audit_data.get("timestamp") is None:
-        score += 20
-    if not audit_data.get("image"):
-        score += 30
+        score += 10
+    
+    # Very low bales count (suspicious)
+    if audit_data.get("bales_count", 0) < 5:
+        score += 10
+    
     return min(score, 100)
 
 def generate_audit_hash(audit_data):
@@ -427,7 +415,7 @@ def generate_pdf_report(audit_data, audit_id):
     elements = []
     styles = getSampleStyleSheet()
     
-    # Indian Govt Header
+    # Header
     header_style = styles['Heading1']
     header_style.textColor = colors.HexColor('#000080')
     elements.append(Paragraph("🇮🇳 GOVERNMENT OF INDIA", header_style))
@@ -435,7 +423,7 @@ def generate_pdf_report(audit_data, audit_id):
     elements.append(Paragraph("Jute Commissioner Organisation", styles['Heading3']))
     elements.append(Spacer(1, 12))
     
-    # Report Title
+    # Title
     title_style = styles['Heading1']
     title_style.textColor = colors.HexColor('#FF9932')
     elements.append(Paragraph("Jute Stock Audit Report", title_style))
@@ -509,19 +497,16 @@ def generate_docx_report(audit_data, audit_id):
     try:
         doc = Document()
         
-        # Header
         doc.add_heading('🇮🇳 GOVERNMENT OF INDIA', 0)
         doc.add_heading('Ministry of Textiles', level=1)
         doc.add_heading('Jute Commissioner Organisation', level=2)
         doc.add_paragraph()
         
-        # Title
         doc.add_heading('Jute Stock Audit Report', level=1)
         doc.add_paragraph(f"Audit ID: {audit_id}")
         doc.add_paragraph(f"Date: {audit_data.get('timestamp', 'N/A')}")
         doc.add_paragraph()
         
-        # Compliance
         compliance = audit_data.get('compliance_status', 'PENDING')
         jpm_act = audit_data.get('jute_packaging_act_compliance', False)
         
@@ -541,7 +526,6 @@ def generate_docx_report(audit_data, audit_id):
         
         doc.add_paragraph()
         
-        # Table
         table = doc.add_table(rows=12, cols=3)
         table.style = 'Light Grid Accent 1'
         
@@ -585,9 +569,13 @@ def generate_docx_report(audit_data, audit_id):
         return None
 
 # ============================================
-# LOGIN PAGE
+# LOGIN PAGE - FIXED
 # ============================================
 def show_login():
+    # Clear any previous data on login page
+    if st.session_state.get('audit_data') and not st.session_state.get('authenticated'):
+        st.session_state.audit_data = None
+    
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown('<div class="header-title">🇮🇳 JuteVision Auditor</div>', unsafe_allow_html=True)
@@ -597,28 +585,31 @@ def show_login():
         
         st.markdown("#### Inspector Authentication")
         
-        inspector_id = st.text_input("Inspector ID ( Govt Email )", placeholder="inspector@gov.in")
-        password = st.text_input("Password", type="password", placeholder="Enter secure password")
+        inspector_id = st.text_input("Inspector ID (Govt Email)", placeholder="inspector@gov.in", key="login_id")
+        password = st.text_input("Password", type="password", placeholder="Enter secure password", key="login_pass")
         
         col_btn1, col_btn2 = st.columns(2)
         
         with col_btn1:
-            if st.button("🔐 Login", use_container_width=True, type="primary"):
+            if st.button("🔐 Login", use_container_width=True, type="primary", key="login_btn"):
                 if inspector_id and password:
-                    if len(password) >= 6 and "@gov.in" in inspector_id:
+                    if len(password) >= 6:
+                        # Reset all session data on fresh login
                         st.session_state.authenticated = True
                         st.session_state.inspector_name = inspector_id
-                        st.session_state.audit_id = f"JAI_AUDIT_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        st.session_state.audit_id = f"AUDIT_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                         st.session_state.audit_data = init_audit_data(inspector_id)
+                        st.session_state.simulated_success = False
+                        st.session_state.pin_verified = False
                         st.success("✅ Login successful! Welcome to JuteVision Auditor.")
                         st.rerun()
                     else:
-                        st.error("⚠️ Use official @gov.in email and 6+ character password")
+                        st.error("⚠️ Password must be at least 6 characters")
                 else:
                     st.error("Please enter both ID and password")
         
         with col_btn2:
-            if st.button("❌ Cancel", use_container_width=True):
+            if st.button("❌ Cancel", use_container_width=True, key="cancel_btn"):
                 st.stop()
         
         st.divider()
@@ -627,9 +618,8 @@ def show_login():
         - This system is for authorized Jute Commissioner Organisation personnel only
         - All activities are logged and monitored
         - Reports are digitally signed under IT Act, 2000
-        - Tampering with audit data is a punishable offense
         
-        **📞 Support:** Contact NIC Helpdesk at 1800-XXX-XXXX
+        **📞 Support:** Contact NIC Helpdesk
         """)
 
 if not st.session_state.authenticated:
@@ -644,9 +634,9 @@ def verify_pin():
     if not st.session_state.pin_verified:
         with st.expander("🔒 Security Verification Required", expanded=True):
             st.info("Enter 4-digit PIN to access export functions")
-            pin = st.text_input("PIN", type="password", max_chars=4)
-            if st.button("🔓 Verify PIN"):
-                if pin == "1234":  # Change in production
+            pin = st.text_input("PIN", type="password", max_chars=4, key="pin_input")
+            if st.button("🔓 Verify PIN", key="verify_pin_btn"):
+                if pin == "1234":
                     st.session_state.pin_verified = True
                     st.success("✅ PIN verified! Access granted.")
                     st.rerun()
@@ -656,11 +646,12 @@ def verify_pin():
     return True
 
 # ============================================
-# HEADER
+# HEADER - FIXED
 # ============================================
 col1, col2, col3 = st.columns([1, 6, 1])
 
 with col1:
+    # Show avatar only, no name here
     st.markdown("""
     <div style="width:48px;height:48px;border-radius:24px;background:linear-gradient(135deg, #FF9932, #FFFFFF, #138808);display:flex;align-items:center;justify-content:center;font-size:24px;">
         🇮🇳
@@ -671,31 +662,33 @@ with col2:
     st.markdown('<div class="header-title">🇮🇳 JuteVision Auditor</div>', unsafe_allow_html=True)
     st.markdown('<div style="text-align:center;color:#666;">Ministry of Textiles, Government of India</div>', unsafe_allow_html=True)
     
-    # Theme toggle
-    theme_col1, theme_col2, theme_col3 = st.columns([1, 1, 4])
+    # Theme toggle - FIXED
+    theme_col1, theme_col2 = st.columns([1, 1])
     with theme_col1:
-        if st.button('🌙 Dark', key='dark_btn'):
+        if st.button('🌙 Dark Mode', key='dark_btn'):
             st.session_state.theme = 'dark'
             st.rerun()
     with theme_col2:
-        if st.button('☀️ Light', key='light_btn'):
+        if st.button('☀️ Light Mode', key='light_btn'):
             st.session_state.theme = 'light'
             st.rerun()
 
 with col3:
     if st.button("🚪 Logout", key="logout_btn"):
+        # Clear all data on logout
         st.session_state.authenticated = False
         st.session_state.inspector_name = None
         st.session_state.audit_id = None
         st.session_state.audit_data = None
         st.session_state.pin_verified = False
+        st.session_state.simulated_success = False
         st.success("✅ Logged out successfully")
         st.rerun()
 
 st.divider()
 
 # ============================================
-# SESSION INFO
+# SESSION INFO - SHOW INSPECTOR NAME HERE
 # ============================================
 st.markdown("### 📋 Session Information")
 col1, col2, col3 = st.columns(3)
@@ -712,7 +705,22 @@ with col3:
     st.markdown("**🟢 Status**")
     st.write("**Active - Ministry Server Connected**")
 
-st.divider()
+# ============================================
+# SIMULATE SUCCESS TOGGLE - FIXED
+# ============================================
+st.markdown("---")
+sim_col1, sim_col2 = st.columns([1, 3])
+with sim_col1:
+    simulate = st.toggle("🧪 Simulate Successful Scan", value=st.session_state.simulated_success)
+    st.session_state.simulated_success = simulate
+
+with sim_col2:
+    if simulate:
+        st.info("🧪 Simulation Mode ON: AI will return successful detection results for testing")
+    else:
+        st.caption("Toggle ON to test app with simulated data")
+
+st.markdown("---")
 
 # ============================================
 # MAIN INTERFACE
@@ -727,49 +735,71 @@ with tab1:
     col_scan1, col_scan2 = st.columns([2, 1])
     
     with col_scan1:
-        st.markdown("**📸 Image Capture**")
-        camera_input = st.camera_input("Capture jute bale image")
-        upload = st.file_uploader("Or upload image", type=["png","jpg","jpeg"])
+        st.markdown("**📸 Image Capture (Multiple Allowed)**")
         
-        selected_file = upload if upload else camera_input
+        # Multiple file upload - FIXED
+        upload_multiple = st.file_uploader(
+            "Upload multiple images", 
+            type=["png","jpg","jpeg"], 
+            accept_multiple_files=True,
+            key="multi_upload"
+        )
         
-        if selected_file:
+        camera_input = st.camera_input("Or capture image", key="camera")
+        
+        # Process multiple uploads
+        if upload_multiple:
+            st.success(f"✅ {len(upload_multiple)} image(s) selected")
+            for idx, file in enumerate(upload_multiple):
+                try:
+                    image = Image.open(file).convert('RGB')
+                    st.image(image, caption=f"Image {idx+1}: {file.name}", use_column_width=True)
+                    
+                    # Save first image as primary
+                    if idx == 0:
+                        buf = io.BytesIO()
+                        image.save(buf, format='JPEG')
+                        buf.seek(0)
+                        st.session_state.audit_data["image"] = buf
+                except Exception as e:
+                    st.error(f"❌ Failed to read {file.name}: {e}")
+        
+        # Single camera capture
+        elif camera_input:
             try:
-                image = Image.open(selected_file).convert('RGB')
+                image = Image.open(camera_input).convert('RGB')
                 st.image(image, caption="Captured Image", use_column_width=True)
                 
                 buf = io.BytesIO()
                 image.save(buf, format='JPEG')
                 buf.seek(0)
                 st.session_state.audit_data["image"] = buf
-                st.success("✅ Image captured successfully")
+                st.success("✅ Image captured")
             except Exception as e:
-                st.error(f"❌ Failed to read image: {e}")
+                st.error(f"❌ Failed: {e}")
     
     with col_scan2:
         st.markdown("**📍 Location Data**")
         
-        # State selection
-        states = ["West Bengal", "Bihar", "Odisha", "Assam", "Andhra Pradesh", "Other"]
-        state = st.selectbox("Select State", states)
-        st.session_state.audit_data["state"] = state
+        states = ["Select State", "West Bengal", "Bihar", "Odisha", "Assam", "Andhra Pradesh", "Jharkhand", "Other"]
+        state = st.selectbox("State", states, key="state_select")
+        st.session_state.audit_data["state"] = state if state != "Select State" else "Not specified"
         
-        if st.button("📍 Capture GPS Location", use_container_width=True):
+        if st.button("📍 Capture GPS", use_container_width=True, key="gps_btn"):
             st.session_state.audit_data["gps"] = {
                 "lat": 22.5726,
                 "lng": 88.3639,
-                "location": f"{state}, India"
+                "location": f"{state}, India" if state != "Select State" else "India"
             }
             st.session_state.audit_data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            st.success(f"✅ Location captured: {state}")
+            st.success(f"✅ Location: {state}")
         
         if st.session_state.audit_data["gps"]:
-            st.info(f"📍 {st.session_state.audit_data['gps']['location']}\n🕐 {st.session_state.audit_data['timestamp']}")
+            st.info(f"📍 {st.session_state.audit_data['gps']['location']}")
         
-        st.markdown("**⚙️ Mill Configuration**")
+        st.markdown("**⚙️ Configuration**")
         daily = st.number_input("Daily Consumption (bales/day)", min_value=1, value=100, key="daily_cons")
         st.session_state.audit_data["daily_consumption"] = daily
-        st.caption("Standard: 100 bales/day for Indian jute mills")
     
     st.divider()
     
@@ -778,78 +808,124 @@ with tab1:
     col_ai1, col_ai2 = st.columns(2)
     
     with col_ai1:
-        if st.button("🔍 Analyze with AI (YOLO)", use_container_width=True, type="primary"):
-            if not st.session_state.audit_data.get("image"):
-                st.error("❌ Please capture an image first!")
-            else:
-                with st.spinner("🧠 AI analyzing jute bales... Please wait..."):
-                    try:
+        analyze_clicked = st.button("🔍 Analyze with AI (YOLO)", use_container_width=True, type="primary", key="analyze_btn")
+        
+        if analyze_clicked:
+            # SIMULATION MODE
+            if st.session_state.simulated_success:
+                with st.spinner("🧪 Running simulated analysis..."):
+                    import time
+                    time.sleep(2)  # Simulate processing
+                    
+                    # Simulated good results
+                    detections = 45
+                    confidence = 0.92
+                    daily_consumption = st.session_state.audit_data.get("daily_consumption", 100)
+                    stock_days = calculate_stock_days(detections, daily_consumption)
+                    
+                    st.session_state.audit_data.update({
+                        "bales_count": detections,
+                        "detections": detections,
+                        "confidence": confidence,
+                        "stock_days": stock_days,
+                        "compliance_status": "PASS",
+                        "jute_packaging_act_compliance": True,
+                        "grade": "A",
+                        "fraud_score": 5,
+                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    
+                    # Create dummy processed image
+                    if st.session_state.audit_data.get("image"):
                         img_buf = st.session_state.audit_data["image"]
                         img_buf.seek(0)
                         image = Image.open(img_buf).convert('RGB')
-                        
-                        # Run detection
-                        detections, annotated_img, confidence = detect_jute_bales(image, model)
-                        
-                        # Calculate metrics
-                        daily_consumption = st.session_state.audit_data.get("daily_consumption", 100)
-                        stock_days = calculate_stock_days(detections, daily_consumption)
-                        compliance = check_compliance(stock_days, 30)
-                        jpm_compliance = check_jute_packaging_act(detections, stock_days)
-                        fraud_score = generate_fraud_score(st.session_state.audit_data)
-                        
-                        # Grade
-                        if confidence > 0.90 and detections > 30:
-                            grade = "A"
-                        elif confidence > 0.80:
-                            grade = "B"
-                        else:
-                            grade = "C"
-                        
-                        # Update data
-                        st.session_state.audit_data.update({
-                            "bales_count": detections,
-                            "detections": detections,
-                            "confidence": round(confidence, 2),
-                            "stock_days": stock_days,
-                            "compliance_status": compliance,
-                            "jute_packaging_act_compliance": jpm_compliance,
-                            "grade": grade,
-                            "fraud_score": fraud_score,
-                            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        })
-                        
-                        # Watermark
-                        watermarked = add_watermark_to_image(annotated_img, st.session_state.audit_data)
+                        watermarked = add_watermark_to_image(image, st.session_state.audit_data)
                         
                         out_buf = io.BytesIO()
                         watermarked.save(out_buf, format='JPEG', quality=95)
                         out_buf.seek(0)
                         st.session_state.audit_data['processed_image'] = out_buf
                         
-                        st.image(watermarked, caption=f'🎯 Detected {detections} Bales | Confidence: {confidence*100:.1f}%', use_column_width=True)
-                        st.success(f"✅ Analysis Complete! {detections} bales detected. Stock: {stock_days} days.")
-                        
-                        if compliance == "PASS":
-                            st.balloons()
-                            st.success("🎉 Jute Packaging Materials Act Compliance: PASSED")
-                        
-                    except Exception as e:
-                        st.error(f"❌ Analysis failed: {e}")
+                        st.image(watermarked, caption=f'🎯 Simulated: {detections} Bales | Confidence: {confidence*100:.1f}%', use_column_width=True)
+                    
+                    st.success(f"✅ SIMULATION: {detections} bales detected! Stock: {stock_days} days.")
+                    st.balloons()
+                    st.rerun()
+            
+            # REAL ANALYSIS MODE
+            else:
+                if not st.session_state.audit_data.get("image"):
+                    st.error("❌ Please capture or upload an image first!")
+                else:
+                    with st.spinner("🧠 AI analyzing jute bales..."):
+                        try:
+                            img_buf = st.session_state.audit_data["image"]
+                            img_buf.seek(0)
+                            image = Image.open(img_buf).convert('RGB')
+                            
+                            detections, annotated_img, confidence = detect_jute_bales(image, model)
+                            
+                            daily_consumption = st.session_state.audit_data.get("daily_consumption", 100)
+                            stock_days = calculate_stock_days(detections, daily_consumption)
+                            compliance = check_compliance(stock_days, 30)
+                            jpm_compliance = check_jute_packaging_act(detections, stock_days)
+                            fraud_score = generate_fraud_score(st.session_state.audit_data)
+                            
+                            # Grade based on actual results
+                            if confidence > 0.90 and detections > 30:
+                                grade = "A"
+                            elif confidence > 0.75:
+                                grade = "B"
+                            elif confidence > 0.50:
+                                grade = "C"
+                            else:
+                                grade = "D"
+                            
+                            st.session_state.audit_data.update({
+                                "bales_count": detections,
+                                "detections": detections,
+                                "confidence": round(confidence, 2),
+                                "stock_days": stock_days,
+                                "compliance_status": compliance,
+                                "jute_packaging_act_compliance": jpm_compliance,
+                                "grade": grade,
+                                "fraud_score": fraud_score,
+                                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            })
+                            
+                            watermarked = add_watermark_to_image(annotated_img, st.session_state.audit_data)
+                            
+                            out_buf = io.BytesIO()
+                            watermarked.save(out_buf, format='JPEG', quality=95)
+                            out_buf.seek(0)
+                            st.session_state.audit_data['processed_image'] = out_buf
+                            
+                            st.image(watermarked, caption=f'🎯 Detected {detections} Bales | Confidence: {confidence*100:.1f}%', use_column_width=True)
+                            st.success(f"✅ Analysis Complete! {detections} bales. Stock: {stock_days} days.")
+                            
+                            if compliance == "PASS":
+                                st.balloons()
+                            
+                            st.rerun()
+                            
+                        except Exception as e:
+                            st.error(f"❌ Analysis failed: {e}")
+                            st.info("💡 Try enabling 'Simulate Successful Scan' for testing")
     
     with col_ai2:
-        if st.button("✏️ Manual Entry", use_container_width=True):
+        if st.button("✏️ Manual Entry", use_container_width=True, key="manual_btn"):
             st.session_state.show_manual = not st.session_state.get("show_manual", False)
             st.rerun()
     
     if st.session_state.get("show_manual", False):
         st.markdown("**📝 Manual Data Entry**")
         
-        bales = st.number_input("Bales Count", 0, 10000, value=st.session_state.audit_data.get("bales_count", 0))
+        bales = st.number_input("Bales Count", 0, 10000, value=st.session_state.audit_data.get("bales_count", 0), key="manual_bales")
         st.session_state.audit_data["bales_count"] = bales
         st.session_state.audit_data["detections"] = bales
         
-        daily = st.number_input("Daily Consumption", 1, 1000, value=st.session_state.audit_data.get("daily_consumption", 100))
+        daily = st.number_input("Daily Consumption", 1, 1000, value=st.session_state.audit_data.get("daily_consumption", 100), key="manual_daily")
         st.session_state.audit_data["daily_consumption"] = daily
         
         stock_days = calculate_stock_days(bales, daily)
@@ -857,7 +933,10 @@ with tab1:
         st.session_state.audit_data["compliance_status"] = check_compliance(stock_days)
         st.session_state.audit_data["jute_packaging_act_compliance"] = check_jute_packaging_act(bales, stock_days)
         
-        st.info(f"📊 Calculated: {stock_days} days stock | Compliance: {st.session_state.audit_data['compliance_status']}")
+        # Calculate fraud score for manual entry
+        st.session_state.audit_data["fraud_score"] = generate_fraud_score(st.session_state.audit_data)
+        
+        st.info(f"📊 Stock: {stock_days} days | Compliance: {st.session_state.audit_data['compliance_status']}")
 
 with tab2:
     st.markdown("### 📊 Compliance Verification & Metrics")
@@ -868,6 +947,13 @@ with tab2:
     compliance = data.get("compliance_status", "PENDING")
     jpm_act = data.get("jute_packaging_act_compliance", False)
     confidence = data.get("confidence", 0)
+    grade = data.get("grade", "N/A")
+    fraud = data.get("fraud_score", 0)
+    
+    # If no analysis done yet, show zeros properly
+    if bales == 0 and compliance == "PENDING":
+        grade = "N/A"
+        fraud = generate_fraud_score(data)  # Will be high (70-100) due to no data
     
     # Compliance Badges
     col_badges = st.columns(2)
@@ -876,19 +962,19 @@ with tab2:
         if compliance == "PASS":
             st.markdown("""
             <div style="background-color:#138808;color:white;padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:24px;border:3px solid #FF9932;">
-                ✅ STOCK COMPLIANCE<br><small>30+ Days Available</small>
+                ✅ STOCK COMPLIANT<br><small>30+ Days Available</small>
             </div>
             """, unsafe_allow_html=True)
         elif compliance == "FAIL":
             st.markdown("""
-            <div style="background-color:#FF9932;color:black;padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:24px;border:3px solid #138808;">
+            <div style="background-color:#DC143C;color:white;padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:24px;border:3px solid #FF9932;">
                 ❌ STOCK SHORTAGE<br><small>Less than 30 Days</small>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
             <div style="background-color:#808080;color:white;padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:24px;">
-                ⏳ PENDING ANALYSIS
+                ⏳ PENDING ANALYSIS<br><small>No Data Available</small>
             </div>
             """, unsafe_allow_html=True)
     
@@ -901,7 +987,7 @@ with tab2:
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-            <div style="background-color:#DC143C;color:white;padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:24px;border:3px solid #FF9932;">
+            <div style="background-color:#FF9932;color:black;padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:24px;border:3px solid #000080;">
                 ⚠️ JPM ACT 1987<br><small>Non-Compliant</small>
             </div>
             """, unsafe_allow_html=True)
@@ -921,28 +1007,31 @@ with tab2:
     
     with col2:
         st.markdown("#### 🎯 AI Confidence")
-        st.metric("Accuracy", f"{confidence*100:.1f}%", "Detection Quality")
+        st.metric("Accuracy", f"{confidence*100:.1f}%" if confidence > 0 else "0.0%", "Detection Quality")
         
         st.markdown("#### 🛡️ Fraud Risk")
-        fraud = data.get("fraud_score", 0)
         st.metric("Risk Score", f"{fraud}/100", "Lower is Better")
     
-    # Grade
+    # Grade - Show N/A or actual grade
     st.markdown("---")
-    grade = data.get("grade", "N/A")
-    grade_colors = {"A": "#138808", "B": "#FF9932", "C": "#DC143C"}
-    grade_color = grade_colors.get(grade, "#808080")
+    grade_display = grade if grade != "N/A" else "N/A"
+    grade_colors = {"A": "#138808", "B": "#FF9932", "C": "#FFA500", "D": "#DC143C", "N/A": "#808080"}
+    grade_color = grade_colors.get(grade_display, "#808080")
+    text_color = "white" if grade_display in ["A", "D", "N/A"] else "black"
     
     st.markdown(f"""
-    <div style="background-color:{grade_color};color:{'white' if grade != 'B' else 'black'};padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:48px;border:3px solid #000080;">
-        Quality Grade: {grade}
+    <div style="background-color:{grade_color};color:{text_color};padding:20px;border-radius:15px;text-align:center;font-weight:bold;font-size:48px;border:3px solid #000080;">
+        Quality Grade: {grade_display}
     </div>
     """, unsafe_allow_html=True)
+    
+    if grade_display == "N/A":
+        st.info("💡 Run AI Analysis or Manual Entry to get grade")
     
     # Notes
     st.markdown("---")
     st.markdown("### 📝 Inspector Remarks")
-    notes = st.text_area("Official remarks for government records", value=data.get("notes", ""), height=100)
+    notes = st.text_area("Official remarks", value=data.get("notes", ""), height=100, key="notes_area")
     st.session_state.audit_data["notes"] = notes
     
     # Audit Info
@@ -975,7 +1064,6 @@ with tab3:
         - **Inspector:** {st.session_state.inspector_name}
         - **Timestamp:** {st.session_state.audit_data.get('timestamp', 'N/A')}
         - **State:** {st.session_state.audit_data.get('state', 'N/A')}
-        - **Location:** {st.session_state.audit_data.get('gps', {}).get('location', 'N/A')}
         """)
     
     with col2:
@@ -1071,7 +1159,7 @@ with tab3:
     # Government Submission
     st.markdown("#### 🏛️ Submit to Ministry Server")
     
-    if st.button("📤 Submit to Ministry of Textiles", use_container_width=True, type="primary"):
+    if st.button("📤 Submit to Ministry of Textiles", use_container_width=True, type="primary", key="submit_btn"):
         with st.spinner("🌐 Submitting to Government of India server..."):
             submission_data = {
                 "audit_id": st.session_state.audit_id,
@@ -1096,7 +1184,7 @@ with tab3:
 st.divider()
 
 # ============================================
-# FOOTER - INDIAN GOVT
+# FOOTER
 # ============================================
 st.markdown("""
 ---
