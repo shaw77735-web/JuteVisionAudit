@@ -181,8 +181,8 @@ def get_css(theme):
             width: 100%;
         }
         </style>
-        """
-       else:
+        """ 
+    else:
         return """
         <style>
         [data-testid="stHeader"] {display:none !important;}
@@ -375,7 +375,7 @@ def detect_jute_bales(image, model):
         if detections > 0:
             confidences = [box.conf.item() for box in results[0].boxes]
             avg_confidence = sum(confidences) / len(confidences)
-        else:
+    else:    
             avg_confidence = 0.0
         
         return detections, annotated_pil, avg_confidence
