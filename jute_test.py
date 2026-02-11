@@ -372,7 +372,12 @@ try:
         annotated_img = results[0].plot()
         annotated_pil = Image.fromarray(annotated_img)
         
-        if detections > 0:
+
+    for box in results[0].boxes:
+        x1, y1, x2, y2 = map(int, box.xyxy[0])
+        confidence = round(box.conf[0], 2)
+        annotated_pil.draw.rectangle([x1, y1, x2, y2], outline="red", width=3)
+        annotated_pil.text((x1, y1 - 10), f"Jute Bale: {confidence}", fill="red")
             confidences = [box.conf.item() for box in results[0].boxes]
             avg_confidence = sum(confidences) / len(confidences)
 else:    
@@ -380,7 +385,7 @@ else:
         
         return detections, annotated_pil, avg_confidence
     
-    except Exception as e:
+except Exception as e:
         st.error(f"Detection error: {e}")
         return 0, image, 0.0
 
