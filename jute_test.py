@@ -362,10 +362,10 @@ def add_watermark_to_image(image, metadata):
 
 def detect_jute_bales(image, model):
     """Detect jute bales using YOLO"""
-    if model is None:
+if model is None:
         return 0, image, 0.0
     
-    try:
+try:
         results = model(image)
         detections = len(results[0].boxes)
         
@@ -375,7 +375,7 @@ def detect_jute_bales(image, model):
         if detections > 0:
             confidences = [box.conf.item() for box in results[0].boxes]
             avg_confidence = sum(confidences) / len(confidences)
-    else:    
+else:    
             avg_confidence = 0.0
         
         return detections, annotated_pil, avg_confidence
