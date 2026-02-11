@@ -373,11 +373,12 @@ try:
         annotated_pil = Image.fromarray(annotated_img)
         
 
-    for box in results[0].boxes:
-        x1, y1, x2, y2 = map(int, box.xyxy[0])
-        confidence = round(box.conf[0], 2)
-        annotated_pil.draw.rectangle([x1, y1, x2, y2], outline="red", width=3)
-        annotated_pil.text((x1, y1 - 10), f"Jute Bale: {confidence}", fill="red")
+    return detections, annotated_pil, confidence
+else:
+    return 0, image, 0.0
+    return detections, annotated_pil, confidence
+else:
+    return 0, image, 0.0
             confidences = [box.conf.item() for box in results[0].boxes]
             avg_confidence = sum(confidences) / len(confidences)
 else:    
