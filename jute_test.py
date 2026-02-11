@@ -182,7 +182,7 @@ def get_css(theme):
         }
         </style>
         """
-    else:
+       else:
         return """
         <style>
         [data-testid="stHeader"] {display:none !important;}
@@ -191,22 +191,53 @@ def get_css(theme):
             padding-top: 0.5rem !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
-            background-color: #f0f2f6 !important;
+            background-color: #ffffff !important;
         }
         body {
-            background-color: #f0f2f6 !important;
-            color: #1f1f1f !important;
+            background-color: #ffffff !important;
+            color: #000000 !important;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
         }
-        h1, h2, h3 {
-            color: #1f1f1f !important;
+        h1, h2, h3, h4, h5, h6 {
+            color: #000000 !important;
             font-weight: 600 !important;
         }
-        p, div, span, label {
-            color: #1f1f1f !important;
+        p, div, span, label, .stMarkdown p {
+            color: #000000 !important;
         }
-        .stMarkdown p {
-            color: #1f1f1f !important;
+        .stButton button {
+            background-color: #000080 !important;
+            color: #ffffff !important;
+            border: 2px solid #000080 !important;
+            border-radius: 12px !important;
+            font-weight: 500 !important;
+        }
+        .stButton button:hover {
+            background-color: #FF9932 !important;
+            color: #000000 !important;
+            border-color: #FF9932 !important;
+        }
+        .stFileUploader {
+            background-color: #f0f2f6 !important;
+            border: 2px dashed #000080 !important;
+            border-radius: 10px !important;
+        }
+        .stFileUploader > div {
+            color: #000000 !important;
+        }
+        .stCameraInput button {
+            background-color: #000080 !important;
+            color: #ffffff !important;
+        }
+        .stSelectbox > div > div {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #cccccc !important;
+        }
+        .stNumberInput input {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #cccccc !important;
         }
         .header-title {
             background: linear-gradient(90deg, #FF9932 0%, #000080 50%, #138808 100%);
@@ -227,7 +258,7 @@ def get_css(theme):
             border: 2px solid #FF9932;
         }
         .metric-card {
-            background-color: #ffffff;
+            background-color: #f0f2f6;
             border: 2px solid #FF9932;
             border-radius: 15px;
             padding: 20px;
@@ -257,18 +288,11 @@ def get_css(theme):
             border: 3px solid #138808;
         }
         .info-box {
-            background-color: #ffffff;
+            background-color: #f0f2f6;
             border-left: 4px solid #FF9932;
             padding: 15px;
             border-radius: 5px;
             margin: 10px 0;
-        }
-        button {
-            border-radius: 12px !important;
-            font-weight: 500 !important;
-        }
-        .stButton button {
-            width: 100%;
         }
         </style>
         """
