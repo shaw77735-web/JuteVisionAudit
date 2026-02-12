@@ -475,7 +475,7 @@ def generate_government_pdf(audit_data):
         ['Date/Time', audit_data.get('timestamp', 'N/A')],
         ['Mill Name', audit_data.get('mill_name', 'N/A')],
         ['Mill License', audit_data.get('mill_license', 'N/A')],
-        ['Location', audit_data.(data.get('gps') or {}).get('address', 'N/A') if audit_data.get('gps') else 'N/A'],
+        ['Location', (audit_data.get('gps') or {}).get('address', 'N/A')],
     ]
     
     info_table = Table(info_data, colWidths=[150, 300])
