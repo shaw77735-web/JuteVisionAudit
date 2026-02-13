@@ -194,10 +194,17 @@ def add_watermark_to_image(image, audit_data, is_processed=False):
     watermark = Image.new('RGBA', img.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(watermark)
     
+    # FIX: Handle None audit_data
+    if audit_data is None:
+        audit_data = {}
+    
     timestamp = audit_data.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     audit_id = audit_data.get("audit_id", "UNKNOWN")
     inspector = audit_data.get("inspector", "UNKNOWN")
-    material = audit_data.get("material_type", "UNKNOWN").upper()
+    material = audit_data.get("material_type", "UNKNOWN")
+    if material is None:
+        material = "UNKNOWN"
+    material = material.upper()
     
     draw.rectangle([0, 0, img.width, 50], fill=(30, 64, 175, 200))
     draw.text((10, 15), f"JUTEVISION | {audit_id} | {inspector} | {material}", fill=(255, 255, 255, 255))
@@ -217,19 +224,19 @@ def simulate_yolo_detection(image, material_type):
     seed = int(np.sum(img_array[:100, :100]) % 10000)
     np.random.seed(seed)
     
-    if material_type == "bale":
+    if material_type == "sacks":
         total = np.random.randint(25, 75)
         grade_a = int(total * 0.30)
         grade_b = int(total * 0.40)
         grade_c = int(total * 0.20)
         grade_d = total - grade_a - grade_b - grade_c
-    elif material_type == "sliver":
+    elif material_type == "fiber":
         total = np.random.randint(60, 180)
         grade_a = int(total * 0.25)
         grade_b = int(total * 0.35)
         grade_c = int(total * 0.25)
         grade_d = total - grade_a - grade_b - grade_c
-    else:
+    else:  # rolls
         total = np.random.randint(120, 350)
         grade_a = int(total * 0.20)
         grade_b = int(total * 0.30)
@@ -609,7 +616,7 @@ def render_header_bar():
 # TAB 1: SCAN JUTE
 # ============================================
 def render_scan_tab():
-    st.markdown("## 58. SCAN JUTE")
+    st.markdown("## SCAN JUTE")
     
     st.subheader("Mill Information")
     col_mill1, col_mill2 = st.columns(2)
@@ -740,21 +747,21 @@ def render_scan_tab():
     col_mat1, col_mat2, col_mat3 = st.columns(3)
     
     with col_mat1:
-        bale_type = "primary" if st.session_state.selected_material == "bale" else "secondary"
-        if st.button("25. JUTE BALE", use_container_width=True, type=bale_type):
-            st.session_state.selected_material = "bale"
+        sacks_type = "primary" if st.session_state.selected_material == "sacks" else "secondary"
+        if st.button("25. JUTE SACKS", use_container_width=True, type=sacks_type):
+            st.session_state.selected_material = "sacks"
             st.rerun()
     
     with col_mat2:
-        sliver_type = "primary" if st.session_state.selected_material == "sliver" else "secondary"
-        if st.button("26. JUTE SLIVER", use_container_width=True, type=sliver_type):
-            st.session_state.selected_material = "sliver"
+        fiber_type = "primary" if st.session_state.selected_material == "fiber" else "secondary"
+        if st.button("26. JUTE FIBER", use_container_width=True, type=fiber_type):
+            st.session_state.selected_material = "fiber"
             st.rerun()
     
     with col_mat3:
-        yarn_type = "primary" if st.session_state.selected_material == "yarn" else "secondary"
-        if st.button("27. JUTE YARN", use_container_width=True, type=yarn_type):
-            st.session_state.selected_material = "yarn"
+        rolls_type = "primary" if st.session_state.selected_material == "rolls" else "secondary"
+        if st.button("27. JUTE ROLLS", use_container_width=True, type=rolls_type):
+            st.session_state.selected_material = "rolls"
             st.rerun()
     
     if not st.session_state.selected_material:
@@ -793,7 +800,9 @@ def render_scan_tab():
                         result = simulate_yolo_detection(image, st.session_state.selected_material)
                         all_results.append(result)
                         
-                        watermarked = add_watermark_to_image(image, st.session_state.audit_data, is_processed=True)
+                        # FIX: Ensure audit_data is not None before passing
+                        audit_data_for_watermark = st.session_state.audit_data or {}
+                        watermarked = add_watermark_to_image(image, audit_data_for_watermark, is_processed=True)
                         buf = io.BytesIO()
                         watermarked.save(buf, format='JPEG', quality=95)
                         buf.seek(0)
@@ -915,7 +924,7 @@ def render_scan_tab():
 # TAB 2: AUDIT RESULTS
 # ============================================
 def render_results_tab():
-    st.markdown("## 59. AUDIT RESULTS")
+    st.markdown("## AUDIT RESULTS")
     
     data = st.session_state.audit_data
     
@@ -1037,7 +1046,7 @@ def render_results_tab():
 # TAB 3: EXPORT REPORT
 # ============================================
 def render_export_tab():
-    st.markdown("## 60. EXPORT REPORT")
+    st.markdown("## EXPORT REPORT")
     
     data = st.session_state.audit_data
     
@@ -1212,7 +1221,7 @@ def main():
     
     st.divider()
     
-    tab_scan, tab_results, tab_export = st.tabs(["58. SCAN JUTE", "59. AUDIT RESULTS", "60. EXPORT REPORT"])
+    tab_scan, tab_results, tab_export = st.tabs(["SCAN JUTE", "AUDIT RESULTS", "EXPORT REPORT"])
     
     with tab_scan:
         render_scan_tab()
