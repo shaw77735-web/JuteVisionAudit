@@ -15,6 +15,8 @@ import zipfile
 from pathlib import Path
 from PIL import Image, ImageDraw
 import cv2
+import base64
+import streamlit.components.v1 as components
 
 # Report generation
 from reportlab.lib.pagesizes import letter, A4
@@ -87,7 +89,8 @@ def initialize_session_state():
         "offline_queue": [],
         "offline_mode": False,
         "model_loaded": False,
-        "model": None
+        "model": None,
+        "qr_scan_result": None
     }
     
     for key, value in defaults.items():
@@ -182,7 +185,7 @@ def load_yolo_model():
 # ============================================
 # IMAGE PROCESSING
 # ============================================
-def add_watermark_to_image(image, audit_data, is_processed=False):
+def add_watermark_to_image(image, audit_data, is_processed=False, for_result=False):
     if isinstance(image, np.ndarray):
         img = Image.fromarray(image)
     else:
@@ -206,11 +209,19 @@ def add_watermark_to_image(image, audit_data, is_processed=False):
         material = "UNKNOWN"
     material = material.upper()
     
+    # Top bar - always show
     draw.rectangle([0, 0, img.width, 50], fill=(30, 64, 175, 200))
     draw.text((10, 15), f"JUTEVISION | {audit_id} | {inspector} | {material}", fill=(255, 255, 255, 255))
     
-    draw.rectangle([0, img.height - 50, img.width, img.height], fill=(30, 64, 175, 200))
-    draw.text((10, img.height - 35), f"{timestamp} | Ministry of Textiles, GoI", fill=(255, 255, 255, 255))
+    # Bottom bar - only show Ministry text if NOT for result photo
+    if for_result:
+        # For result photos, show generic text without ministry
+        draw.rectangle([0, img.height - 50, img.width, img.height], fill=(30, 64, 175, 200))
+        draw.text((10, img.height - 35), f"{timestamp} | JuteVision Audit System", fill=(255, 255, 255, 255))
+    else:
+        # For internal use, show ministry
+        draw.rectangle([0, img.height - 50, img.width, img.height], fill=(30, 64, 175, 200))
+        draw.text((10, img.height - 35), f"{timestamp} | Ministry of Textiles, GoI", fill=(255, 255, 255, 255))
     
     if is_processed:
         draw.rectangle([img.width - 120, img.height//2 - 30, img.width, img.height//2 + 30], fill=(34, 197, 94, 220))
@@ -235,6 +246,24 @@ def simulate_yolo_detection(image, material_type):
         grade_a = int(total * 0.25)
         grade_b = int(total * 0.35)
         grade_c = int(total * 0.25)
+        grade_d = total - grade_a - grade_b - grade_c
+    elif material_type == "sliver":
+        total = np.random.randint(80, 200)
+        grade_a = int(total * 0.20)
+        grade_b = int(total * 0.40)
+        grade_c = int(total * 0.30)
+        grade_d = total - grade_a - grade_b - grade_c
+    elif material_type == "yarns":
+        total = np.random.randint(100, 300)
+        grade_a = int(total * 0.25)
+        grade_b = int(total * 0.35)
+        grade_c = int(total * 0.30)
+        grade_d = total - grade_a - grade_b - grade_c
+    elif material_type == "bales":
+        total = np.random.randint(40, 120)
+        grade_a = int(total * 0.15)
+        grade_b = int(total * 0.35)
+        grade_c = int(total * 0.35)
         grade_d = total - grade_a - grade_b - grade_c
     else:  # rolls
         total = np.random.randint(120, 350)
@@ -646,11 +675,44 @@ def render_scan_tab():
             placeholder="+91 98765 43210"
         )
     
+    # QR Scanner using HTML5 QR Code
     if st.button("16. SCAN MILL QR CODE", use_container_width=True):
-        st.session_state.audit_data['mill_name'] = "Sample Jute Mill Pvt Ltd"
-        st.session_state.audit_data['mill_license'] = "JML-WB-98765-2024"
-        st.session_state.audit_data['mill_address'] = "123 Industrial Area, Howrah, West Bengal"
-        st.rerun()
+        st.markdown("### QR Code Scanner")
+        st.markdown("Position QR code in front of camera")
+        
+        # HTML5 QR Code Scanner component
+        html_code = """
+        <div id="reader" style="width: 100%; height: 400px;"></div>
+        <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+        <script>
+            function onScanSuccess(decodedText, decodedResult) {
+                // Send result to Streamlit
+                window.parent.postMessage({
+                    type: 'streamlit:setComponentValue',
+                    value: decodedText
+                }, '*');
+                html5QrcodeScanner.clear();
+            }
+            
+            var html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", { fps: 10, qrbox: 250 });
+            html5QrcodeScanner.render(onScanSuccess);
+        </script>
+        """
+        
+        components.html(html_code, height=450)
+        
+        # Manual entry fallback
+        st.markdown("Or enter manually:")
+        manual_qr = st.text_input("QR Data", placeholder="MILL-ID-12345")
+        
+        if st.button("Process QR Data"):
+            if manual_qr:
+                st.session_state.audit_data['mill_name'] = f"Mill {manual_qr}"
+                st.session_state.audit_data['mill_license'] = f"JML-{manual_qr}-2024"
+                st.session_state.audit_data['mill_address'] = "Auto-filled from QR"
+                st.success(f"QR Processed: {manual_qr}")
+                st.rerun()
     
     if st.button("17. ADD NEW MILL", use_container_width=True):
         st.session_state.audit_data['mill_name'] = ""
@@ -665,15 +727,47 @@ def render_scan_tab():
     col_loc1, col_loc2 = st.columns([2, 1])
     
     with col_loc1:
+        # Real GPS using browser geolocation
         if st.button("15. GET GPS LOCATION", use_container_width=True):
-            st.session_state.gps_location = {
-                "lat": 22.5726,
-                "lng": 88.3639,
-                "address": "Howrah, West Bengal, India"
-            }
-            st.session_state.audit_data['gps'] = st.session_state.gps_location
-            st.session_state.audit_data['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            st.success("GPS Location captured")
+            gps_html = """
+            <script>
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        window.parent.postMessage({
+                            type: 'streamlit:setComponentValue',
+                            value: JSON.stringify({
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                                accuracy: position.coords.accuracy
+                            })
+                        }, '*');
+                    },
+                    function(error) {
+                        window.parent.postMessage({
+                            type: 'streamlit:setComponentValue',
+                            value: JSON.stringify({error: error.message})
+                        }, '*');
+                    }
+                );
+            </script>
+            """
+            components.html(gps_html, height=0)
+            
+            # Fallback to manual entry
+            st.markdown("If GPS doesn't work, enter manually:")
+            lat = st.number_input("Latitude", value=22.5726, format="%.4f")
+            lng = st.number_input("Longitude", value=88.3639, format="%.4f")
+            
+            if st.button("Save GPS"):
+                st.session_state.gps_location = {
+                    "lat": lat,
+                    "lng": lng,
+                    "address": f"Lat: {lat}, Lng: {lng}"
+                }
+                st.session_state.audit_data['gps'] = st.session_state.gps_location
+                st.session_state.audit_data['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                st.success("GPS Location captured")
+                st.rerun()
     
     with col_loc2:
         if st.session_state.gps_location:
@@ -691,7 +785,14 @@ def render_scan_tab():
         uploaded_files = st.file_uploader("Or Upload Images", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
         
         if camera_input:
-            if camera_input not in st.session_state.captured_images:
+            # Check if already exists
+            is_duplicate = False
+            for img in st.session_state.captured_images:
+                if hasattr(img, 'name') and img.name == camera_input.name:
+                    is_duplicate = True
+                    break
+            
+            if not is_duplicate:
                 st.session_state.captured_images.append(camera_input)
                 st.success(f"Image captured. Total: {len(st.session_state.captured_images)}")
         
@@ -716,34 +817,48 @@ def render_scan_tab():
     
     if st.session_state.captured_images:
         st.markdown(f"**Captured Images: {len(st.session_state.captured_images)}**")
+        
+        # Apply zoom level to display
+        zoom = st.session_state.zoom_level
+        
         cols = st.columns(4)
         for idx, img in enumerate(st.session_state.captured_images):
             with cols[idx % 4]:
                 if isinstance(img, str) and img.startswith("burst_"):
                     st.info(f"Burst {idx+1}")
                 else:
-                    st.image(img, caption=f"Image {idx+1}", use_column_width=True)
+                    # Apply zoom by adjusting width
+                    width = int(100 * zoom)
+                    st.image(img, caption=f"Image {idx+1}", width=width)
                 
                 col_c1, col_c2 = st.columns(2)
                 with col_c1:
                     if st.button(f"13. ZOOM IN {idx+1}", key=f"zoom_in_{idx}"):
                         st.session_state.zoom_level = min(st.session_state.zoom_level * 1.2, 3.0)
+                        st.rerun()
                 with col_c2:
                     if st.button(f"14. ZOOM OUT {idx+1}", key=f"zoom_out_{idx}"):
-                        st.session_state.zoom_level = max(st.session_state.zoom_level / 1.2, 1.0)
+                        st.session_state.zoom_level = max(st.session_state.zoom_level / 1.2, 0.5)
+                        st.rerun()
                 
                 if st.button(f"12. REMOVE IMAGE {idx+1}", key=f"remove_{idx}"):
                     st.session_state.captured_images.pop(idx)
                     st.rerun()
         
-        if st.button("11. CLEAR ALL IMAGES", use_container_width=True):
+        # FIX: Proper clear all button
+        if st.button("11. CLEAR ALL IMAGES", use_container_width=True, key="clear_all_images"):
             st.session_state.captured_images = []
             st.session_state.watermarked_images = []
+            st.session_state.processed_images = []
+            st.session_state.analysis_complete = False
+            st.success("All images cleared!")
             st.rerun()
     
     st.divider()
     
     st.subheader("Material Type Classification")
+    
+    # FIX: 6 material types in 2 rows of 3
     col_mat1, col_mat2, col_mat3 = st.columns(3)
     
     with col_mat1:
@@ -762,6 +877,27 @@ def render_scan_tab():
         rolls_type = "primary" if st.session_state.selected_material == "rolls" else "secondary"
         if st.button("27. JUTE ROLLS", use_container_width=True, type=rolls_type):
             st.session_state.selected_material = "rolls"
+            st.rerun()
+    
+    # Second row - 3 NEW materials
+    col_mat4, col_mat5, col_mat6 = st.columns(3)
+    
+    with col_mat4:
+        sliver_type = "primary" if st.session_state.selected_material == "sliver" else "secondary"
+        if st.button("28. JUTE SLIVER", use_container_width=True, type=sliver_type):
+            st.session_state.selected_material = "sliver"
+            st.rerun()
+    
+    with col_mat5:
+        yarns_type = "primary" if st.session_state.selected_material == "yarns" else "secondary"
+        if st.button("29. JUTE YARNS", use_container_width=True, type=yarns_type):
+            st.session_state.selected_material = "yarns"
+            st.rerun()
+    
+    with col_mat6:
+        bales_type = "primary" if st.session_state.selected_material == "bales" else "secondary"
+        if st.button("30. JUTE BALES", use_container_width=True, type=bales_type):
+            st.session_state.selected_material = "bales"
             st.rerun()
     
     if not st.session_state.selected_material:
@@ -800,9 +936,9 @@ def render_scan_tab():
                         result = simulate_yolo_detection(image, st.session_state.selected_material)
                         all_results.append(result)
                         
-                        # FIX: Ensure audit_data is not None before passing
+                        # FIX: Use for_result=True for result photos (no ministry text)
                         audit_data_for_watermark = st.session_state.audit_data or {}
-                        watermarked = add_watermark_to_image(image, audit_data_for_watermark, is_processed=True)
+                        watermarked = add_watermark_to_image(image, audit_data_for_watermark, is_processed=True, for_result=True)
                         buf = io.BytesIO()
                         watermarked.save(buf, format='JPEG', quality=95)
                         buf.seek(0)
